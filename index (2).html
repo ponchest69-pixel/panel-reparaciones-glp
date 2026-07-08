@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>GLP · Panel de Reparación de Tarjetas</title>
+<meta name="description" content="Dashboard operativo de reparación de tarjetas electrónicas — proyecto GLP">
+
+<!-- Fuentes -->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+
+<!-- Chart.js vía CDN, con respaldo automático a un segundo CDN si el primero falla -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.js"
+        onerror="var s=document.createElement('script'); s.src='https://unpkg.com/chart.js@4.4.4/dist/chart.umd.js'; document.head.appendChild(s);"></script>
+
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<div class="pcb-bg" aria-hidden="true"></div>
+
+<header class="topbar">
+  <div class="topbar__brand">
+    <span class="chip-mark" aria-hidden="true">
+      <span class="chip-mark__pin"></span><span class="chip-mark__pin"></span><span class="chip-mark__pin"></span><span class="chip-mark__pin"></span>
+    </span>
+    <div class="topbar__titles">
+      <p class="eyebrow">Reparación de tarjetas · Proyecto PHILO / GLP</p>
+      <h1>Panel de Piso de Reparación</h1>
+    </div>
+  </div>
+  <div class="topbar__period" id="periodo-label">
+    Cargando periodo…
+  </div>
+</header>
+
+<main class="layout">
+
+  <!-- KPIs -->
+  <section class="kpi-strip" aria-label="Indicadores clave">
+    <article class="kpi-card">
+      <span class="kpi-card__label">Reparaciones totales</span>
+      <span class="kpi-card__value" id="kpi-total">–</span>
+      <span class="kpi-card__note">registros válidos en el periodo</span>
+    </article>
+    <article class="kpi-card">
+      <span class="kpi-card__label">Tarjetas únicas</span>
+      <span class="kpi-card__value" id="kpi-tarjetas">–</span>
+      <span class="kpi-card__note">seriales distintos procesados</span>
+    </article>
+    <article class="kpi-card kpi-card--warn">
+      <span class="kpi-card__label">Tarjetas en retrabajo</span>
+      <span class="kpi-card__value" id="kpi-retrabajo">–</span>
+      <span class="kpi-card__note" id="kpi-retrabajo-note">reparadas más de una vez</span>
+    </article>
+    <article class="kpi-card">
+      <span class="kpi-card__label">Reparaciones / tarjeta</span>
+      <span class="kpi-card__value" id="kpi-promedio">–</span>
+      <span class="kpi-card__note">promedio del periodo</span>
+    </article>
+    <article class="kpi-card kpi-card--danger">
+      <span class="kpi-card__label">Máximo en una tarjeta</span>
+      <span class="kpi-card__value" id="kpi-max">–</span>
+      <span class="kpi-card__note">retrabajo crónico detectado</span>
+    </article>
+  </section>
+
+  <!-- Filtro de línea (estilo banco de DIP switches) -->
+  <section class="line-filter" aria-label="Filtro por línea de reparación">
+    <span class="line-filter__label">Línea:</span>
+    <div class="dip-bank" id="line-filter" role="group" aria-label="Seleccionar línea">
+      <button class="dip" data-line="ALL" aria-pressed="true">TODAS</button>
+      <button class="dip" data-line="T1" aria-pressed="false">T1</button>
+      <button class="dip" data-line="T2" aria-pressed="false">T2</button>
+      <button class="dip" data-line="T3" aria-pressed="false">T3</button>
+    </div>
+    <span class="line-filter__hint">Filtra la tendencia y el resumen por línea/turno</span>
+  </section>
+
+  <!-- Tendencia + resumen por linea -->
+  <section class="grid grid--2col">
+    <article class="panel panel--wide">
+      <header class="panel__head">
+        <h2>Tendencia mensual de reparaciones</h2>
+        <p>Volumen de tarjetas reparadas por mes, mayo 2025 – jun 2026</p>
+      </header>
+      <div class="panel__body">
+        <canvas id="chart-tendencia" height="110"></canvas>
+      </div>
+    </article>
+
+    <article class="panel">
+      <header class="panel__head">
+        <h2>Carga por línea</h2>
+        <p>Reparaciones y técnicos activos</p>
+      </header>
+      <div class="panel__body" id="resumen-lineas"></div>
+    </article>
+  </section>
+
+  <!-- Defectos + localidades -->
+  <section class="grid grid--2col">
+    <article class="panel">
+      <header class="panel__head">
+        <h2>Top 15 defectos</h2>
+        <p>Categorías normalizadas de falla</p>
+      </header>
+      <div class="panel__body">
+        <canvas id="chart-defectos" height="230"></canvas>
+      </div>
+    </article>
+
+    <article class="panel">
+      <header class="panel__head">
+        <h2>Top 15 puntos de falla</h2>
+        <p>Designador de componente agrupado — <strong>U44 domina el conteo</strong></p>
+      </header>
+      <div class="panel__body">
+        <canvas id="chart-localidades" height="230"></canvas>
+      </div>
+    </article>
+  </section>
+
+  <!-- Retrabajo -->
+  <section class="grid grid--2col">
+    <article class="panel">
+      <header class="panel__head">
+        <h2>Distribución de retrabajo</h2>
+        <p>Cuántas veces se repara la misma tarjeta</p>
+      </header>
+      <div class="panel__body">
+        <canvas id="chart-retrabajo" height="230"></canvas>
+      </div>
+    </article>
+
+    <article class="panel">
+      <header class="panel__head">
+        <h2>Tarjetas con más reparaciones</h2>
+        <p>Candidatas a análisis de causa raíz o disposición de scrap</p>
+      </header>
+      <div class="panel__body panel__body--table">
+        <table class="data-table" id="tabla-retrabajo">
+          <thead>
+            <tr><th>#</th><th>Serial</th><th>Reparaciones</th></tr>
+          </thead>
+          <tbody></tbody>
+        </table>
+      </div>
+    </article>
+  </section>
+
+  <!-- Tecnicos -->
+  <section class="panel panel--wide">
+    <header class="panel__head panel__head--row">
+      <div>
+        <h2>Productividad por técnico</h2>
+        <p>Reparaciones registradas por técnico y línea (top 25)</p>
+      </div>
+      <input type="search" id="buscador-tecnico" class="search-input" placeholder="Buscar técnico…" aria-label="Buscar técnico">
+    </header>
+    <div class="panel__body panel__body--table">
+      <table class="data-table data-table--sortable" id="tabla-tecnicos">
+        <thead>
+          <tr>
+            <th data-key="tecnico">Técnico</th>
+            <th data-key="T1">T1</th>
+            <th data-key="T2">T2</th>
+            <th data-key="T3">T3</th>
+            <th data-key="total">Total</th>
+          </tr>
+        </thead>
+        <tbody></tbody>
+      </table>
+    </div>
+  </section>
+
+  <footer class="footer">
+    <p>Panel generado a partir de <code>REPARACIONES_GLP.xlsx</code>. Datos normalizados: nombres de técnico, categorías de defecto y designadores de componente.</p>
+    <p>Ver <a href="README.md">README.md</a> para instrucciones de actualización de datos.</p>
+  </footer>
+
+</main>
+
+<script src="script.js"></script>
+</body>
+</html>
