@@ -1,0 +1,10 @@
+{
+  "total_reparaciones": 79331,
+  "total_tarjetas_unicas": 38016,
+  "tarjetas_retrabajo": 12951,
+  "pct_retrabajo": 34.1,
+  "promedio_reparaciones_por_tarjeta": 2.09,
+  "max_reparaciones_una_tarjeta": 63,
+  "periodo_inicio": "2025-01-09",
+  "periodo_fin": "2026-07-08"
+}
