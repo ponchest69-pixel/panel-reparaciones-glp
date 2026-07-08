@@ -1,0 +1,20 @@
+[
+  {
+    "linea": "T1",
+    "reparaciones": 31694,
+    "tarjetas_unicas": 19670,
+    "tecnicos": 138
+  },
+  {
+    "linea": "T2",
+    "reparaciones": 25515,
+    "tarjetas_unicas": 16586,
+    "tecnicos": 84
+  },
+  {
+    "linea": "T3",
+    "reparaciones": 22122,
+    "tarjetas_unicas": 15906,
+    "tecnicos": 102
+  }
+]
